@@ -49,7 +49,8 @@ def login():
 def account_info(ssn):
     if 'ssn' not in session:
         return redirect(url_for('login'))
-
+    # Display phone and email address
+    #Add functionality to modify personal details (Name, email, phone)
     # Fetch user data from the database
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -148,17 +149,29 @@ def statements():
     ''', (ssn,))
     received_data = cursor.fetchall()
 
-    # Query to find the transactions with the maximum amount per month
+    # Query to find the transactions with the maximum amount per month for sent
     cursor.execute('''
         SELECT 
             YEAR(IN_DATE_TIME) AS year,
             MONTH(IN_DATE_TIME) AS month,
-            MAX(SAMOUNT) AS max_transaction
+            MAX(SAMOUNT) AS max_transaction_sent
         FROM SEND_TRANS
         WHERE SSSN = ?
         GROUP BY YEAR(IN_DATE_TIME), MONTH(IN_DATE_TIME)
     ''', (ssn,))
-    max_transactions = cursor.fetchall()
+    max_transactions_sent = cursor.fetchall()
+
+# Query to find the transactions with the maximum amount per month for received
+    cursor.execute('''
+        SELECT 
+            YEAR(RT_DATE_TIME) AS year,
+            MONTH(RT_DATE_TIME) AS month,
+            MAX(RAMOUNT) AS max_transaction_received
+        FROM REQUEST_TRANS
+        WHERE RSSN = ?
+        GROUP BY YEAR(RT_DATE_TIME), MONTH(RT_DATE_TIME)
+    ''', (ssn,))
+    max_transactions_received = cursor.fetchall()
 
     # Query to find the best users (users who have sent the most money)
     cursor.execute('''
@@ -174,10 +187,12 @@ def statements():
     conn.close()
 
     # Return the rendered template with the fetched data
+    #Modify s
     return render_template('statements.html', 
                            sent_data=sent_data,
                            received_data=received_data,
-                           max_transactions=max_transactions,
+                           max_transactions_sent=max_transactions_sent,
+                           max_transactions_received=max_transactions_received,
                            best_users=best_users)
 
 
@@ -190,6 +205,8 @@ def search_transactions():
 
     if request.method == 'POST':
         ssn = request.form['ssn']
+        # Shows the email address and phone number 
+        # Add transaction type (4 options)
         start_date = request.form['start_date']
         end_date = request.form['end_date']
 

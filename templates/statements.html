@@ -44,15 +44,33 @@
         </table>
     {% endif %}
 
-    {% if max_transactions %}
-        <h2>Max Transactions Per Month</h2>
+    {% if max_transactions_sent %}
+        <h2>Max Transactions Per Month Sent</h2>
         <table>
             <tr>
                 <th>Year</th>
                 <th>Month</th>
-                <th>Max Transaction</th>
+                <th>Max Transaction Sent</th>
             </tr>
-            {% for row in max_transactions %}
+            {% for row in max_transactions_sent %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    
+    {% if max_transactions_received %}
+        <h2>Max Transactions Per Month Received</h2>
+        <table>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Max Transaction Received</th>
+            </tr>
+            {% for row in max_transactions_received %}
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>

@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS REQUESTED_FROM;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Create WALLET_USER_ACCOUNT table
+-- Make sure balance is derived
 CREATE TABLE WALLET_USER_ACCOUNT (
     SSN INTEGER PRIMARY KEY,
     FNAME VARCHAR(50),
@@ -92,6 +93,7 @@ CREATE TABLE REQUESTED_FROM (
 # TO BE CONTINUED
 -- Populate WALLET_USER_ACCOUNT
 -- Insert data into WALLET_USER_ACCOUNT
+
 INSERT INTO WALLET_USER_ACCOUNT (SSN, FNAME, LNAME, BALANCE, CONFIRMED)
 VALUES
 (123456789, 'John', 'Doe', 1500.75, TRUE),
@@ -150,6 +152,7 @@ INSERT INTO SEND_TRANS (SSSN, STO, SAMOUNT, IN_DATE_TIME, COMP_DATE_TIME, SMEMO)
 VALUES
 (123456789, 'jane.smith@example.com', 500.00, '2024-11-01 12:30:00', '2024-11-01 14:00:00', 'Payment for invoice'),
 (987654321, 'bob.williams@example.com', 1000.00, '2024-11-02 10:15:00', '2024-11-02 11:45:00', 'Loan repayment'),
+(987654321, 'bob.williams@example.com', 1500.00, '2024-11-02 10:15:00', '2024-11-02 11:45:00', 'Loan repayment'),
 (555555555, 'alice.johnson@example.com', 200.00, '2024-11-03 15:30:00', '2024-11-03 17:00:00', 'Gift transfer'),
 (111223344, 'charlie.brown@example.com', 300.00, '2024-11-04 16:45:00', '2024-11-04 18:00:00', 'Rent payment'),
 (445566778, 'john.doe@example.com', 750.00, '2024-11-05 09:00:00', '2024-11-05 10:30:00', 'Business payment'),
