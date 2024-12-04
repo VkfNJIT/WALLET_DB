@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statements</title>
+</head>
+<body>
+    <h1>Statements</h1>
+    
+    {% if sent_data %}
+        <h2>Sent Transactions</h2>
+        <table>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Total Sent</th>
+            </tr>
+            {% for row in sent_data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if received_data %}
+        <h2>Received Transactions</h2>
+        <table>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Total Received</th>
+            </tr>
+            {% for row in received_data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if max_transactions %}
+        <h2>Max Transactions Per Month</h2>
+        <table>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Max Transaction</th>
+            </tr>
+            {% for row in max_transactions %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if best_users %}
+        <h2>Best Users (Top 5)</h2>
+        <table>
+            <tr>
+                <th>SSSN</th>
+                <th>Total Sent</th>
+            </tr>
+            {% for row in best_users %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>
+

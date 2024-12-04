@@ -1,174 +1,214 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session
 import mariadb
+import os
+import secrets
 
-# Flask app setup
 app = Flask(__name__)
 
-# Database configuration
-db_config = {
-    'user': 'vishalfenn',          # Your MariaDB username
-    'password': 'Arow@63516',          # Your MariaDB password
-    'host': 'localhost',     # MariaDB server host
-    'port': 3306,            # Default MariaDB port
-    'database': 'WALLET'  # Name of the database
-}
+# Set a secret key for session management and security
+app.secret_key = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
-# Function to establish a database connection
+# Connect to the MariaDB database
 def get_db_connection():
-    try:
-        conn = mariadb.connect(**db_config)
-        return conn
-    except mariadb.Error as e:
-        print(f"Error connecting to MariaDB: {e}")
-        raise
+    conn = mariadb.connect(
+        user="vishalfenn",        # Replace with your MariaDB username
+        password="Arow@63516",    # Replace with your MariaDB password
+        host="localhost",
+        port=3306,
+        database="WALLET"            # Replace with your database name
+    )
+    return conn
 
-# API to fetch account information by SSN
-@app.route('/account/<int:ssn>', methods=['GET'])
-def get_account_info(ssn):
-    try:
+@app.route('/')
+def main_menu():
+    if 'ssn' not in session:
+        return redirect(url_for('login'))
+    return render_template('main_menu.html', ssn=session['ssn'])
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        ssn = request.form['ssn']  # Get SSN from the form
+
+        # Check if SSN exists in the database
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # Query to fetch account info
-        cursor.execute("SELECT * FROM WALLET_USER_ACCOUNT WHERE SSN = ?", (ssn,))
-        account = cursor.fetchone()
-        cursor.close()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM WALLET_USER_ACCOUNT WHERE SSN = ?', (ssn,))
+        user_data = cursor.fetchone()
         conn.close()
 
-        if account:
-            return jsonify(account)
+        if user_data:
+            # Store the SSN in the session
+            session['ssn'] = user_data[0]
+            return redirect(url_for('main_menu'))  # Redirect to main menu after successful login
         else:
-            return jsonify({'message': 'Account not found'}), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+            return "SSN not found! Please try again."
+    return render_template('login.html')
 
-# API to send money
-@app.route('/send-money', methods=['POST'])
+@app.route('/account_info/<int:ssn>')
+def account_info(ssn):
+    if 'ssn' not in session:
+        return redirect(url_for('login'))
+
+    # Fetch user data from the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM WALLET_USER_ACCOUNT WHERE SSN = ?', (ssn,))
+    user_data = cursor.fetchone()
+    conn.close()
+
+    if user_data:
+        user = {
+            'ssn': user_data[0],
+            'first_name': user_data[1],
+            'last_name': user_data[2],
+            'balance': user_data[3],
+            'confirmed': user_data[4]
+        }
+        return render_template('account_info.html', user=user)
+    return f"User with SSN {ssn} not found!"
+
+@app.route('/send_money', methods=['GET', 'POST'])
 def send_money():
-    try:
-        data = request.json
-        sender_ssn = data['senderSSN']
-        recipient = data['recipient']  # Email or phone number
-        amount = data['amount']
-        memo = data.get('memo', '')
+    if 'ssn' not in session:
+        return redirect(url_for('login'))
+        
+    if request.method == 'POST':
+        ssn = request.form['ssn']
+        recipient = request.form['recipient']
+        amount = float(request.form['amount'])
 
+        # Insert send transaction into database
         conn = get_db_connection()
         cursor = conn.cursor()
-
-        # Start a transaction
-        conn.autocommit = False
-
-        # Deduct amount from sender
-        cursor.execute("UPDATE WALLET_USER_ACCOUNT SET BALANCE = BALANCE - ? WHERE SSN = ?", (amount, sender_ssn))
-
-        # Add amount to recipient
-        cursor.execute("""
-            UPDATE WALLET_USER_ACCOUNT 
-            SET BALANCE = BALANCE + ?
-            WHERE SSN IN (SELECT WASSN FROM ELECTRO_ADDR WHERE IDENTIFIER = ?)
-        """, (amount, recipient))
-
-        # Log the transaction
-        cursor.execute("""
-            INSERT INTO SEND_TRANS (SSSN, STO, SAMOUNT, IN_DATE_TIME, SMEMO)
-            VALUES (?, ?, ?, NOW(), ?)
-        """, (sender_ssn, recipient, amount, memo))
-
-        # Commit the transaction
+        cursor.execute('INSERT INTO SEND_TRANS (SSSN, STO, SAMOUNT, IN_DATE_TIME) VALUES (?, ?, ?, NOW())',
+                       (ssn, recipient, amount))
         conn.commit()
-        cursor.close()
         conn.close()
 
-        return jsonify({'message': 'Transaction successful'})
-    except Exception as e:
-        if conn:
-            conn.rollback()
-        return jsonify({'error': str(e)}), 500
+        return redirect(url_for('main_menu'))
+    
+    return render_template('send_money.html')
 
-# API to fetch transaction statements
-@app.route('/statements/<int:ssn>', methods=['GET'])
-def get_statements(ssn):
-    try:
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
+@app.route('/request_money', methods=['GET', 'POST'])
+def request_money():
+    if 'ssn' not in session:
+        return redirect(url_for('login'))
 
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+    if request.method == 'POST':
+        ssn = request.form['ssn']
+        requester = request.form['requester']
+        amount = float(request.form['amount'])
 
-        # Query to fetch statements within date range
-        cursor.execute("""
-            SELECT SAMOUNT, IN_DATE_TIME, SMEMO
-            FROM SEND_TRANS
-            WHERE SSSN = ? AND IN_DATE_TIME BETWEEN ? AND ?
-        """, (ssn, start_date, end_date))
-        statements = cursor.fetchall()
-        cursor.close()
-        conn.close()
-
-        return jsonify(statements)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# API to modify personal details
-@app.route('/account/<int:ssn>', methods=['PUT'])
-def modify_account_info(ssn):
-    try:
-        data = request.json
-        fname = data.get('FNAME')
-        lname = data.get('LNAME')
-
+        # Insert request transaction into database
         conn = get_db_connection()
         cursor = conn.cursor()
-
-        # Update personal details
-        cursor.execute("""
-            UPDATE WALLET_USER_ACCOUNT
-            SET FNAME = ?, LNAME = ?
-            WHERE SSN = ?
-        """, (fname, lname, ssn))
-
+        cursor.execute('INSERT INTO REQUEST_TRANS (RSSN, RAMOUNT, RT_DATE_TIME) VALUES (?, ?, NOW())',
+                       (ssn, amount))
         conn.commit()
-        cursor.close()
         conn.close()
 
-        return jsonify({'message': 'Account details updated successfully'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return redirect(url_for('main_menu'))
 
-# API to add or remove email or phone
-@app.route('/account/contact/<int:ssn>', methods=['POST'])
-def modify_contact_info(ssn):
-    try:
-        data = request.json
-        identifier = data['IDENTIFIER']
-        contact_type = data['TYPE']
-        action = data['ACTION']  # 'add' or 'remove'
+    return render_template('request_money.html')
 
+@app.route('/statements', methods=['GET'])
+def statements():
+    # Retrieve the SSN from the session
+    ssn = session.get('ssn')  # Retrieve SSN from session
+
+    # If SSN is not in session, redirect to login page
+    if not ssn:
+        return redirect(url_for('login'))
+
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Query to calculate total amount sent and received by the user per month
+    cursor.execute('''
+        SELECT 
+            YEAR(IN_DATE_TIME) AS year,
+            MONTH(IN_DATE_TIME) AS month,
+            SUM(SAMOUNT) AS total_sent
+        FROM SEND_TRANS
+        WHERE SSSN = ?
+        GROUP BY YEAR(IN_DATE_TIME), MONTH(IN_DATE_TIME)
+    ''', (ssn,))
+    sent_data = cursor.fetchall()
+
+    cursor.execute('''
+        SELECT 
+            YEAR(RT_DATE_TIME) AS year,
+            MONTH(RT_DATE_TIME) AS month,
+            SUM(RAMOUNT) AS total_received
+        FROM REQUEST_TRANS
+        WHERE RSSN = ?
+        GROUP BY YEAR(RT_DATE_TIME), MONTH(RT_DATE_TIME)
+    ''', (ssn,))
+    received_data = cursor.fetchall()
+
+    # Query to find the transactions with the maximum amount per month
+    cursor.execute('''
+        SELECT 
+            YEAR(IN_DATE_TIME) AS year,
+            MONTH(IN_DATE_TIME) AS month,
+            MAX(SAMOUNT) AS max_transaction
+        FROM SEND_TRANS
+        WHERE SSSN = ?
+        GROUP BY YEAR(IN_DATE_TIME), MONTH(IN_DATE_TIME)
+    ''', (ssn,))
+    max_transactions = cursor.fetchall()
+
+    # Query to find the best users (users who have sent the most money)
+    cursor.execute('''
+        SELECT 
+            SSSN, SUM(SAMOUNT) AS total_sent
+        FROM SEND_TRANS
+        GROUP BY SSSN
+        ORDER BY total_sent DESC
+        LIMIT 5
+    ''')
+    best_users = cursor.fetchall()
+
+    conn.close()
+
+    # Return the rendered template with the fetched data
+    return render_template('statements.html', 
+                           sent_data=sent_data,
+                           received_data=received_data,
+                           max_transactions=max_transactions,
+                           best_users=best_users)
+
+
+
+
+@app.route('/search_transactions', methods=['GET', 'POST'])
+def search_transactions():
+    if 'ssn' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        ssn = request.form['ssn']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+
+        # Fetch transactions from the database based on SSN and date range
         conn = get_db_connection()
         cursor = conn.cursor()
-
-        if action == 'add':
-            # Add email or phone
-            cursor.execute("""
-                INSERT INTO ELECTRO_ADDR (IDENTIFIER, WASSN, TYPE, VERIFIED)
-                VALUES (?, ?, ?, FALSE)
-            """, (identifier, ssn, contact_type))
-        elif action == 'remove':
-            # Remove email or phone
-            cursor.execute("""
-                DELETE FROM ELECTRO_ADDR WHERE IDENTIFIER = ? AND WASSN = ?
-            """, (identifier, ssn))
-        else:
-            return jsonify({'error': 'Invalid action'}), 400
-
-        conn.commit()
-        cursor.close()
+        cursor.execute('SELECT * FROM SEND_TRANS WHERE SSSN = ? AND IN_DATE_TIME BETWEEN ? AND ?',
+                       (ssn, start_date, end_date))
+        transactions = cursor.fetchall()
         conn.close()
 
-        return jsonify({'message': 'Contact info updated successfully'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return render_template('search_results.html', transactions=transactions)
 
-# Run Flask app
+    return render_template('search_transactions.html')
+
+@app.route('/sign_out')
+def sign_out():
+    session.pop('ssn', None)  # Clear session
+    return redirect(url_for('main_menu'))
+
 if __name__ == '__main__':
     app.run(debug=True)

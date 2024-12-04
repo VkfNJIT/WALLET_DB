@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Money</title>
+</head>
+<body>
+    <h1>Request Money</h1>
+    <form action="/request_money" method="post">
+        <label for="ssn">Your SSN:</label>
+        <input type="text" id="ssn" name="ssn" required><br><br>
+        <label for="requester">Requester (email/phone):</label>
+        <input type="text" id="requester" name="requester" required><br><br>
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" required><br><br>
+        <input type="submit" value="Request Money">
+    </form>
+</body>
+</html>
+
