@@ -44,7 +44,7 @@
     <h1>Request Money</h1>
     <form action="/request_money" method="post">
         <label for="ssn">Your SSN:</label>
-        <input type="text" id="ssn" name="ssn" required><br><br>
+        <input type="text" id="ssn" name="ssn" value="{{ session.get('ssn') }}" required readonly><br><br>
         <label for="requester">Requester (email/phone):</label>
         <input type="text" id="requester" name="requester" required><br><br>
         <label for="amount">Amount:</label>

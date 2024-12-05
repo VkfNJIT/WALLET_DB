@@ -44,7 +44,7 @@
     <h1>Search Transactions</h1>
     <form action="/search_transactions" method="post">
         <label for="ssn">Your SSN:</label>
-        <input type="text" id="ssn" name="ssn" required><br><br>
+        <input type="text" id="ssn" name="ssn" value="{{ session.get('ssn') }}" required readonly><br><br>
         <label for="start_date">Start Date:</label>
         <input type="date" id="start_date" name="start_date" required><br><br>
         <label for="end_date">End Date:</label>

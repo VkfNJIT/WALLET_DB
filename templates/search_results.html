@@ -47,6 +47,7 @@
             <th>Transaction ID</th>
             <th>Sender SSN</th>
             <th>Recipient</th>
+            <th>Transaction Type</th>
             <th>Amount</th>
             <th>Date</th>
         </tr>
@@ -54,7 +55,14 @@
         <tr>
             <td>{{ transaction[0] }}</td>
             <td>{{ transaction[1] }}</td>
-            <td>{{ transaction[2] }}</td>
+            <td>
+                {% if transaction[5] == 'Sent' %}
+                    {{ transaction[2] }}  <!-- Recipient Identifier for Sent transactions -->
+                {% else %}
+                    {{ transaction[2] }}  <!-- Sender Identifier for Received transactions -->
+                {% endif %}
+            </td>
+            <td>{{ transaction[6] }}</td>  <!-- Transaction Type (Sent/Received) -->
             <td>${{ transaction[3] }}</td>
             <td>{{ transaction[4] }}</td>
         </tr>
@@ -63,4 +71,3 @@
     <a href="/search_transactions">Back to Search Transactions</a>
 </body>
 </html>
-
