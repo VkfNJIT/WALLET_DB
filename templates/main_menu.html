@@ -4,18 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            width: 200px;
+            text-align: center;
+        }
+        a:hover {
+            opacity: 0.8;
+        }
+        /* Specific colors for each link */
+        .account-info {
+            background-color: #28a745; /* Green */
+        }
+        .send-money {
+            background-color: #007BFF; /* Blue */
+        }
+        .request-money {
+            background-color: #FFC107; /* Yellow */
+        }
+        .statements {
+            background-color: #17a2b8; /* Teal */
+        }
+        .search-transactions {
+            background-color: #6f42c1; /* Purple */
+        }
+        .sign-out {
+            background-color: #dc3545; /* Red */
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Wallet, SSN: {{ ssn }}</h1>
+    <h1>Welcome to Wallet, {{first_name}} {{last_name}} SSN: {{ ssn }}</h1>
     <ul>
-        <li><a href="/account_info/{{ ssn }}">Account Info</a></li>
-        <li><a href="/send_money">Send Money</a></li>
-        <li><a href="/request_money">Request Money</a></li>
-        <li><a href="/statements">Statements</a></li>
-        <li><a href="/search_transactions">Search Transactions</a></li>
-        <li><a href="/sign_out">Sign Out</a></li>
+        <li><a href="/account_info/{{ ssn }}" class="account-info">Account Info</a></li>
+        <li><a href="/send_money" class="send-money">Send Money</a></li>
+        <li><a href="/request_money" class="request-money">Request Money</a></li>
+        <li><a href="/statements" class="statements">Statements</a></li>
+        <li><a href="/search_transactions" class="search-transactions">Search Transactions</a></li>
+        <li><a href="/sign_out" class="sign-out">Sign Out</a></li>
     </ul>
 </body>
 </html>
+
 
 

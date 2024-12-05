@@ -4,6 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Info</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Account Information</h1>
@@ -12,6 +47,11 @@
     <p>Last Name: {{ user.last_name }}</p>
     <p>Balance: ${{ user.balance }}</p>
     <p>Confirmed: {{ user.confirmed }}</p>
+    <!-- Add Modify Account button -->
+    <a href="/modify_account/{{ user['ssn'] }}">Modify Account Information</a>
+
+    <!-- Back to Main Menu -->
+    <a href="/">Back to Main Menu</a>
 </body>
 </html>
 

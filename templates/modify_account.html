@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results</title>
+    <title>Modify Account Information</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,26 +41,24 @@
     </style>
 </head>
 <body>
-    <h1>Search Results</h1>
-    <table border="1">
-        <tr>
-            <th>Transaction ID</th>
-            <th>Sender SSN</th>
-            <th>Recipient</th>
-            <th>Amount</th>
-            <th>Date</th>
-        </tr>
-        {% for transaction in transactions %}
-        <tr>
-            <td>{{ transaction[0] }}</td>
-            <td>{{ transaction[1] }}</td>
-            <td>{{ transaction[2] }}</td>
-            <td>${{ transaction[3] }}</td>
-            <td>{{ transaction[4] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <a href="/search_transactions">Back to Search Transactions</a>
+    <h1>Modify Account Information</h1>
+    <form method="POST" action="/modify_account/{{ ssn }}">
+        <label for="fname">First Name:</label>
+        <input type="text" id="fname" name="fname" value="{{ user_data['fname'] }}" required><br><br>
+
+        <label for="lname">Last Name:</label>
+        <input type="text" id="lname" name="lname" value="{{ user_data['lname'] }}" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ emails[0] if emails else '' }}"><br><br>
+
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" name="phone" value="{{ phones[0] if phones else '' }}"><br><br>
+
+        <button type="submit">Save Changes</button>
+    </form>
+
+    <!-- Back to Account Info -->
+    <a href="/account_info/{{ ssn }}">Back to Account Info</a>
 </body>
 </html>
-

@@ -4,10 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statements</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Statements</h1>
-    
+
     {% if sent_data %}
         <h2>Sent Transactions</h2>
         <table>
@@ -61,7 +96,7 @@
             {% endfor %}
         </table>
     {% endif %}
-    
+
     {% if max_transactions_received %}
         <h2>Max Transactions Per Month Received</h2>
         <table>
@@ -81,10 +116,10 @@
     {% endif %}
 
     {% if best_users %}
-        <h2>Best Users (Top 5)</h2>
+        <h2>Top 5 Users Who Sent the Most Money</h2>
         <table>
             <tr>
-                <th>SSSN</th>
+                <th>SSN</th>
                 <th>Total Sent</th>
             </tr>
             {% for row in best_users %}
@@ -95,6 +130,24 @@
             {% endfor %}
         </table>
     {% endif %}
+
+    {% if top_receivers %}
+        <h2>Top 5 Users Who Received the Most Money</h2>
+        <table>
+            <tr>
+                <th>SSN</th>
+                <th>Total Received</th>
+            </tr>
+            {% for row in top_receivers %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    <a href="/">Back to Main Menu</a>
 </body>
 </html>
 
