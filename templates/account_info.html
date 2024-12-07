@@ -47,11 +47,13 @@
     <p>Last Name: {{ user.last_name }}</p>
     <p>Balance: ${{ user.balance }}</p>
     <p>Confirmed: {{ user.confirmed }}</p>
+    <p>Phone: {{ user.phone }}</p>  <!-- Added phone -->
+    <p>Email: {{ user.email }}</p>  <!-- Added email -->
+    
     <!-- Add Modify Account button -->
-    <a href="/modify_account/{{ user['ssn'] }}">Modify Account Information</a>
+    <a href="/modify_account/{{ user.ssn }}">Modify Account Information</a>
 
     <!-- Back to Main Menu -->
     <a href="/">Back to Main Menu</a>
 </body>
 </html>
-

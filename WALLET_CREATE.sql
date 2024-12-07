@@ -63,6 +63,7 @@ CREATE TABLE SEND_TRANS (
     FOREIGN KEY (STO) REFERENCES ELECTRO_ADDR(IDENTIFIER)
 );
 
+-- ADD to front end 
 -- Create CANCELLED_SEND_TRANS table
 CREATE TABLE CANCELLED_SEND_TRANS (
     STID INTEGER PRIMARY KEY,
@@ -166,6 +167,7 @@ VALUES
 (5, 'Recipient unreachable');
 
 -- Insert data into REQUEST_TRANS
+-- Request should not take money immediately, it has to be send by the user
 INSERT INTO REQUEST_TRANS (RSSN, RAMOUNT, RT_DATE_TIME, RMEMO)
 VALUES
 (123456789, 250.00, '2024-11-01 13:00:00', 'Request for refund'),
@@ -182,3 +184,4 @@ VALUES
 (3, 'alice.johnson@example.com', 60.00),
 (4, 'charlie.brown@example.com', 80.00),
 (5, 'jane.smith@example.com', 40.00);
+

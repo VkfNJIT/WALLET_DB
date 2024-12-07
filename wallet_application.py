@@ -61,25 +61,51 @@ def login():
 def account_info(ssn):
     if 'ssn' not in session:
         return redirect(url_for('login'))
-    # Display phone and email address
-    #Add functionality to modify personal details (Name, email, phone)
-    # Fetch user data from the database
+    
+    # Fetch user data from the WALLET_USER_ACCOUNT table and ELECTRO_ADDR for email and phone
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # Get the main account details
     cursor.execute('SELECT * FROM WALLET_USER_ACCOUNT WHERE SSN = ?', (ssn,))
     user_data = cursor.fetchone()
+    
+    # Get the email and phone
+    cursor.execute('''
+        SELECT 
+            CASE 
+                WHEN TYPE = 'email' THEN IDENTIFIER 
+                ELSE NULL 
+            END AS email,
+            CASE 
+                WHEN TYPE = 'phone' THEN IDENTIFIER 
+                ELSE NULL 
+            END AS phone
+        FROM ELECTRO_ADDR 
+        WHERE WASSN = ?
+    ''', (ssn,))
+    contacts = cursor.fetchall()
+    
     conn.close()
 
     if user_data:
+        # Extract email and phone from the results
+        email = next((c[0] for c in contacts if c[0]), None)
+        phone = next((c[1] for c in contacts if c[1]), None)
+
         user = {
             'ssn': user_data[0],
             'first_name': user_data[1],
             'last_name': user_data[2],
             'balance': user_data[3],
-            'confirmed': user_data[4]
+            'confirmed': user_data[4],
+            'email': email,
+            'phone': phone
         }
         return render_template('account_info.html', user=user)
+    
     return f"User with SSN {ssn} not found!"
+
 
 @app.route('/modify_account/<int:ssn>', methods=['GET', 'POST'])
 def modify_account(ssn):
@@ -109,18 +135,18 @@ def modify_account(ssn):
             # Update email in ELECTRO_ADDR
             if email:
                 cursor.execute('''
-                    INSERT INTO ELECTRO_ADDR (IDENTIFIER, WASSN, TYPE, VERIFIED)
-                    VALUES (?, ?, 'email', TRUE)
-                    ON DUPLICATE KEY UPDATE IDENTIFIER = ?, VERIFIED = TRUE
-                ''', (email, ssn, email))
-
+                    UPDATE ELECTRO_ADDR 
+                    SET IDENTIFIER = ?, VERIFIED = TRUE
+                    WHERE WASSN = ? AND TYPE = 'email'
+                ''', (email, ssn))
+            
             # Update phone in ELECTRO_ADDR
             if phone:
                 cursor.execute('''
-                    INSERT INTO ELECTRO_ADDR (IDENTIFIER, WASSN, TYPE, VERIFIED)
-                    VALUES (?, ?, 'phone', TRUE)
-                    ON DUPLICATE KEY UPDATE IDENTIFIER = ?, VERIFIED = TRUE
-                ''', (phone, ssn, phone))
+                    UPDATE ELECTRO_ADDR 
+                    SET IDENTIFIER = ?, VERIFIED = TRUE
+                    WHERE WASSN = ? AND TYPE = 'phone'
+                ''', (phone, ssn))
 
             conn.commit()
             return redirect(url_for('account_info', ssn=ssn))
@@ -149,6 +175,7 @@ def modify_account(ssn):
         phones=phones,
         ssn=ssn
     )
+
 
 
 @app.route('/send_money', methods=['GET', 'POST'])
@@ -200,7 +227,7 @@ def send_money():
 
     return render_template('send_money.html')
 
-
+# Request 
 @app.route('/request_money', methods=['GET', 'POST'])
 def request_money():
     if 'ssn' not in session:
@@ -334,11 +361,13 @@ def search_transactions():
     if request.method == 'POST':
         ssn = request.form['ssn']
         # Shows the email address and phone number 
+        email = request.form
         # Add transaction type (4 options)
         start_date = request.form['start_date']
         end_date = request.form['end_date']
 
         # Fetch transactions from the database based on SSN and date range
+        # Also show request transactions
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM SEND_TRANS WHERE SSSN = ? AND IN_DATE_TIME BETWEEN ? AND ?',
