@@ -26,6 +26,9 @@
         th {
             background-color: #f4f4f4;
         }
+        .cancelled {
+            color: red;
+        }
         a {
             display: inline-block;
             margin-top: 20px;
@@ -42,32 +45,73 @@
 </head>
 <body>
     <h1>Search Results</h1>
-    <table border="1">
+    
+    <!-- User Contact Information -->
+    <h2>User Contact Information</h2>
+    <p><strong>Emails:</strong> {{ ', '.join(user_contact_info.email) }}</p>
+    <p><strong>Phones:</strong> {{ ', '.join(user_contact_info.phone) }}</p>
+
+    <!-- Send Transactions -->
+    <h2>Send Transactions</h2>
+    <table>
         <tr>
             <th>Transaction ID</th>
             <th>Sender SSN</th>
             <th>Recipient</th>
-            <th>Transaction Type</th>
+            <th>Status</th>
             <th>Amount</th>
             <th>Date</th>
+            <th>Memo</th>
+            <th>Cancellation Reason</th>
         </tr>
         {% for transaction in transactions %}
         <tr>
             <td>{{ transaction[0] }}</td>
             <td>{{ transaction[1] }}</td>
+            <td>{{ transaction[2] }}</td>
             <td>
-                {% if transaction[5] == 'Sent' %}
-                    {{ transaction[2] }}  <!-- Recipient Identifier for Sent transactions -->
+                {% if transaction[5] %}
+                    Completed
+                {% elif transaction[7] %}
+                    <span class="cancelled">Cancelled</span>
                 {% else %}
-                    {{ transaction[2] }}  <!-- Sender Identifier for Received transactions -->
+                    Pending
                 {% endif %}
             </td>
-            <td>{{ transaction[6] }}</td>  <!-- Transaction Type (Sent/Received) -->
             <td>${{ transaction[3] }}</td>
             <td>{{ transaction[4] }}</td>
+            <td>{{ transaction[6] }}</td>
+            <td>{{ transaction[7] if transaction[7] else 'N/A' }}</td>
         </tr>
         {% endfor %}
     </table>
+
+    <!-- Request Transactions -->
+   <!-- Request Transactions -->
+    <h2>Request Transactions</h2>
+    <table>
+        <tr>
+            <th>Request ID</th>
+            <th>Requester SSN</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Memo</th>
+            <th>Requested From</th>
+            <th>Percentage</th>
+        </tr>
+        {% for request in request_transactions %}
+        <tr>
+            <td>{{ request[0] }}</td>
+            <td>{{ request[1] }}</td>
+            <td>${{ request[2] }}</td>
+            <td>{{ request[3] }}</td>
+            <td>{{ request[4] }}</td>
+            <td>{{ request[5] }}</td>
+            <td>{{ request[6] }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+
     <a href="/search_transactions">Back to Search Transactions</a>
 </body>
 </html>

@@ -62,7 +62,6 @@ def account_info(ssn):
     if 'ssn' not in session:
         return redirect(url_for('login'))
     
-    # Fetch user data from the WALLET_USER_ACCOUNT table and ELECTRO_ADDR for email and phone
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -188,6 +187,7 @@ def send_money():
     if request.method == 'POST':
         recipient = request.form['recipient']
         amount = request.form.get('amount', type=float)
+        smemo = request.form.get('memo', '') 
 
         # Validate input
         if not recipient or not amount or amount <= 0:
@@ -200,9 +200,9 @@ def send_money():
         try:
             # Insert into SEND_TRANS for sender
             cursor.execute('''
-                INSERT INTO SEND_TRANS (SSSN, STO, SAMOUNT, IN_DATE_TIME)
-                VALUES (?, ?, ?, NOW())
-            ''', (sender_ssn, recipient, amount))
+                INSERT INTO SEND_TRANS (SSSN, STO, SAMOUNT, IN_DATE_TIME, SMEMO)
+                VALUES (?, ?, ?, NOW(), ?)
+            ''', (sender_ssn, recipient, amount, smemo))
 
             # Check if recipient exists
             cursor.execute('SELECT COUNT(*) FROM WALLET_USER_ACCOUNT WHERE SSN = ?', (recipient,))
@@ -235,20 +235,35 @@ def request_money():
 
     if request.method == 'POST':
         ssn = request.form['ssn']
-        requester = request.form['requester']
+        requester = request.form['requester']  # The person you are requesting money from
         amount = float(request.form['amount'])
+        rmemo = request.form.get('memo', '')  # Optional memo
+        percentage = float(request.form['percentage']) if 'percentage' in request.form else 0.0  # Default to 0% if not provided
 
         # Insert request transaction into database
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO REQUEST_TRANS (RSSN, RAMOUNT, RT_DATE_TIME) VALUES (?, ?, NOW())',
-                       (ssn, amount))
+        
+        # Insert into REQUEST_TRANS table
+        cursor.execute('''INSERT INTO REQUEST_TRANS (RSSN, RAMOUNT, RT_DATE_TIME, RMEMO)
+                          VALUES (%s, %s, NOW(), %s)''',
+                       (ssn, amount, rmemo))
+        
+        # Get the last inserted RTID for the request (Using cursor.lastrowid)
+        last_rt_id = cursor.lastrowid  # This works in MariaDB for getting the last insert ID
+
+        # Insert into REQUESTED_FROM table
+        cursor.execute('''INSERT INTO REQUESTED_FROM (RTID, RFROM, PERCENTAGE)
+                          VALUES (%s, %s, %s)''',
+                       (last_rt_id, requester, percentage))
+
         conn.commit()
         conn.close()
 
         return redirect(url_for('main_menu'))
 
     return render_template('request_money.html')
+
 
 @app.route('/statements', methods=['GET'])
 def statements():
@@ -360,24 +375,65 @@ def search_transactions():
 
     if request.method == 'POST':
         ssn = request.form['ssn']
-        # Shows the email address and phone number 
-        email = request.form
-        # Add transaction type (4 options)
         start_date = request.form['start_date']
         end_date = request.form['end_date']
 
-        # Fetch transactions from the database based on SSN and date range
-        # Also show request transactions
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM SEND_TRANS WHERE SSSN = ? AND IN_DATE_TIME BETWEEN ? AND ?',
-                       (ssn, start_date, end_date))
+
+        # Fetch send transactions
+        cursor.execute(
+            '''
+            SELECT ST.STID, ST.SSSN, ST.STO, ST.SAMOUNT, ST.IN_DATE_TIME, 
+                   ST.COMP_DATE_TIME, ST.SMEMO, C.CANCELLATION_REASON
+            FROM SEND_TRANS ST
+            LEFT JOIN CANCELLED_SEND_TRANS C ON ST.STID = C.STID
+            WHERE ST.SSSN = ? AND ST.IN_DATE_TIME BETWEEN ? AND ?
+            ''',
+            (ssn, start_date, end_date)
+        )
         transactions = cursor.fetchall()
+
+        # Fetch request transactions
+        cursor.execute(
+            '''
+            SELECT RT.RTID, RT.RSSN, RT.RAMOUNT, RT.RT_DATE_TIME, RT.RMEMO, 
+                   RF.RFROM, RF.PERCENTAGE
+            FROM REQUEST_TRANS RT
+            JOIN REQUESTED_FROM RF ON RT.RTID = RF.RTID
+            WHERE RT.RSSN = ? AND RT.RT_DATE_TIME BETWEEN ? AND ?
+            ''',
+            (ssn, start_date, end_date)
+        )
+        request_transactions = cursor.fetchall()
+        print("DEBUG: Request Transactions:", request_transactions)  # Debug log
+
+        # Fetch user contact information
+        cursor.execute(
+            '''
+            SELECT IDENTIFIER, TYPE
+            FROM ELECTRO_ADDR
+            WHERE WASSN = ?
+            ''',
+            (ssn,)
+        )
+        user_contact_info = cursor.fetchall()
         conn.close()
 
-        return render_template('search_results.html', transactions=transactions)
+        # Prepare contact info for display
+        email_list = [item[0] for item in user_contact_info if item[1] == 'email']
+        phone_list = [item[0] for item in user_contact_info if item[1] == 'phone']
+
+        # Render the results
+        return render_template(
+            'search_results.html',
+            transactions=transactions,
+            request_transactions=request_transactions,
+            user_contact_info={'email': email_list, 'phone': phone_list}
+        )
 
     return render_template('search_transactions.html')
+
 
 @app.route('/sign_out')
 def sign_out():
