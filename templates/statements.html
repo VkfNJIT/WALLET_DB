@@ -61,15 +61,15 @@
         </table>
     {% endif %}
 
-    {% if received_data %}
-        <h2>Received Transactions</h2>
+    {% if requested_data %}
+        <h2>Requested Transactions</h2>
         <table>
             <tr>
                 <th>Year</th>
                 <th>Month</th>
-                <th>Total Received</th>
+                <th>Total Requested</th>
             </tr>
-            {% for row in received_data %}
+            {% for row in requested_data %}
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
@@ -97,15 +97,15 @@
         </table>
     {% endif %}
 
-    {% if max_transactions_received %}
-        <h2>Max Transactions Per Month Received</h2>
+    {% if max_transactions_requested %}
+        <h2>Max Transactions Per Month Requested</h2>
         <table>
             <tr>
                 <th>Year</th>
                 <th>Month</th>
-                <th>Max Transaction Received</th>
+                <th>Max Transaction Requested</th>
             </tr>
-            {% for row in max_transactions_received %}
+            {% for row in max_transactions_requested %}
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
@@ -131,14 +131,14 @@
         </table>
     {% endif %}
 
-    {% if top_receivers %}
-        <h2>Top 5 Users Who Received the Most Money</h2>
+    {% if top_requesters %}
+        <h2>Top 5 Users Who Requested the Most Money</h2>
         <table>
             <tr>
                 <th>SSN</th>
-                <th>Total Received</th>
+                <th>Total Requested</th>
             </tr>
-            {% for row in top_receivers %}
+            {% for row in top_requesters %}
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>

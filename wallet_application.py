@@ -295,12 +295,12 @@ def statements():
             SELECT 
                 YEAR(RT_DATE_TIME) AS year,
                 MONTH(RT_DATE_TIME) AS month,
-                SUM(RAMOUNT) AS total_received
+                SUM(RAMOUNT) AS total_requested
             FROM REQUEST_TRANS
             WHERE RSSN = ?
             GROUP BY YEAR(RT_DATE_TIME), MONTH(RT_DATE_TIME)
         ''', (ssn,))
-        received_data = cursor.fetchall()
+        requested_data = cursor.fetchall()
 
         # Query: Maximum transaction amounts per month for sent and received
         cursor.execute('''
@@ -318,12 +318,12 @@ def statements():
             SELECT 
                 YEAR(RT_DATE_TIME) AS year,
                 MONTH(RT_DATE_TIME) AS month,
-                MAX(RAMOUNT) AS max_transaction_received
+                MAX(RAMOUNT) AS max_transaction_requested
             FROM REQUEST_TRANS
             WHERE RSSN = ?
             GROUP BY YEAR(RT_DATE_TIME), MONTH(RT_DATE_TIME)
         ''', (ssn,))
-        max_transactions_received = cursor.fetchall()
+        max_transactions_requested = cursor.fetchall()
 
         # Query: Top 5 users who sent the most money
         cursor.execute('''
@@ -339,13 +339,13 @@ def statements():
         # Query: Top 5 users who received the most money
         cursor.execute('''
             SELECT 
-                RSSN, SUM(RAMOUNT) AS total_received
+                RSSN, SUM(RAMOUNT) AS total_requested
             FROM REQUEST_TRANS
             GROUP BY RSSN
-            ORDER BY total_received DESC
+            ORDER BY total_requested DESC
             LIMIT 5
         ''')
-        top_receivers = cursor.fetchall()
+        top_requester = cursor.fetchall()
 
     except Exception as e:
         conn.rollback()
@@ -357,11 +357,11 @@ def statements():
     return render_template(
         'statements.html', 
         sent_data=sent_data,
-        received_data=received_data,
+        requested_data=requested_data,
         max_transactions_sent=max_transactions_sent,
-        max_transactions_received=max_transactions_received,
+        max_transactions_requested=max_transactions_requested,
         best_users=best_users,
-        top_receivers=top_receivers
+        top_requesters=top_requester
     )
 
 
