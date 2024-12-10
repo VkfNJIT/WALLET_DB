@@ -42,6 +42,9 @@
 </head>
 <body>
     <h1>Statements</h1>
+    <h2>User Contact Information</h2>
+    <p><strong>Emails:</strong> {{ ', '.join(user_contact_info.email) }}</p>
+    <p><strong>Phones:</strong> {{ ', '.join(user_contact_info.phone) }}</p>
 
     {% if sent_data %}
         <h2>Sent Transactions</h2>
@@ -120,12 +123,16 @@
         <table>
             <tr>
                 <th>SSN</th>
+                <th>First Name</th>
+                <th>Last Name</th>
                 <th>Total Sent</th>
             </tr>
             {% for row in best_users %}
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -136,12 +143,16 @@
         <table>
             <tr>
                 <th>SSN</th>
+                <th>First Name</th>
+                <th>Last Name</th>
                 <th>Total Requested</th>
             </tr>
             {% for row in top_requesters %}
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
             </tr>
             {% endfor %}
         </table>

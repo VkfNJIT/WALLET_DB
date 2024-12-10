@@ -279,7 +279,7 @@ def statements():
     cursor = conn.cursor()
 
     try:
-        # Query: Total amount sent and received per month
+        # Query: Total amount sent and requested per month
         cursor.execute('''
             SELECT 
                 YEAR(IN_DATE_TIME) AS year,
@@ -302,7 +302,7 @@ def statements():
         ''', (ssn,))
         requested_data = cursor.fetchall()
 
-        # Query: Maximum transaction amounts per month for sent and received
+        # Query: Maximum transaction amounts per month for sent and requested
         cursor.execute('''
             SELECT 
                 YEAR(IN_DATE_TIME) AS year,
@@ -328,24 +328,33 @@ def statements():
         # Query: Top 5 users who sent the most money
         cursor.execute('''
             SELECT 
-                SSSN, SUM(SAMOUNT) AS total_sent
-            FROM SEND_TRANS
+                SSSN, FNAME, LNAME, SUM(SAMOUNT) AS total_sent
+            FROM SEND_TRANS JOIN WALLET_USER_ACCOUNT ON SSSN=SSN
             GROUP BY SSSN
             ORDER BY total_sent DESC
             LIMIT 5
         ''')
         best_users = cursor.fetchall()
 
-        # Query: Top 5 users who received the most money
+        # Query: Top 5 users who requested the most money
         cursor.execute('''
             SELECT 
-                RSSN, SUM(RAMOUNT) AS total_requested
-            FROM REQUEST_TRANS
+                RSSN, FNAME, LNAME, SUM(RAMOUNT) AS total_requested
+            FROM REQUEST_TRANS JOIN WALLET_USER_ACCOUNT ON RSSN=SSN
             GROUP BY RSSN
             ORDER BY total_requested DESC
             LIMIT 5
         ''')
         top_requester = cursor.fetchall()
+        cursor.execute(
+            '''
+            SELECT IDENTIFIER, TYPE
+            FROM ELECTRO_ADDR
+            WHERE WASSN = ?
+            ''',
+            (ssn,)
+        )
+        user_contact_info = cursor.fetchall()
 
     except Exception as e:
         conn.rollback()
@@ -353,6 +362,8 @@ def statements():
     finally:
         conn.close()
 
+    email_list = [item[0] for item in user_contact_info if item[1] == 'email']
+    phone_list = [item[0] for item in user_contact_info if item[1] == 'phone']
     # Render template with all fetched data
     return render_template(
         'statements.html', 
@@ -361,7 +372,9 @@ def statements():
         max_transactions_sent=max_transactions_sent,
         max_transactions_requested=max_transactions_requested,
         best_users=best_users,
-        top_requesters=top_requester
+        top_requesters=top_requester,
+        user_contact_info={'email': email_list, 'phone': phone_list}
+
     )
 
 

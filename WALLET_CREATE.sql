@@ -185,3 +185,33 @@ VALUES
 (4, 'charlie.brown@example.com', 80.00),
 (5, 'jane.smith@example.com', 40.00);
 
+
+-- Trigger to update balance after a send transaction
+DELIMITER $$
+
+CREATE TRIGGER update_balance_on_send
+AFTER INSERT ON SEND_TRANS
+FOR EACH ROW
+BEGIN
+    -- Deduct the sent amount from the sender's wallet balance
+    UPDATE WALLET_USER_ACCOUNT
+    SET BALANCE = BALANCE - NEW.SAMOUNT
+    WHERE SSN = NEW.SSSN;
+END $$
+
+DELIMITER ;
+
+-- Trigger to update balance after a request transaction
+DELIMITER $$
+
+CREATE TRIGGER update_balance_on_request
+AFTER INSERT ON REQUEST_TRANS
+FOR EACH ROW
+BEGIN
+    -- Deduct the requested amount from the requester's wallet balance
+    UPDATE WALLET_USER_ACCOUNT
+    SET BALANCE = BALANCE + NEW.RAMOUNT
+    WHERE SSN = NEW.RSSN;
+END $$
+
+DELIMITER ;
