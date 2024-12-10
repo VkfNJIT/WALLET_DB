@@ -84,7 +84,9 @@ def account_info(ssn):
         WHERE WASSN = ?
     ''', (ssn,))
     contacts = cursor.fetchall()
-    
+
+    cursor.execute('SELECT BANKID, BANUMBER FROM BANK_ACCOUNT WHERE WSSN = ?',(ssn,))
+    bank_data = cursor.fetchone()
     conn.close()
 
     if user_data:
@@ -98,6 +100,8 @@ def account_info(ssn):
             'last_name': user_data[2],
             'balance': user_data[3],
             'confirmed': user_data[4],
+            'bank_id': bank_data[0],
+            'bank_number': bank_data[1],
             'email': email,
             'phone': phone
         }
@@ -301,7 +305,6 @@ def statements():
             GROUP BY YEAR(RT_DATE_TIME), MONTH(RT_DATE_TIME)
         ''', (ssn,))
         requested_data = cursor.fetchall()
-
         # Query: Maximum transaction amounts per month for sent and requested
         cursor.execute('''
             SELECT 
