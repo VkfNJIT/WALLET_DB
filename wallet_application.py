@@ -136,20 +136,20 @@ def modify_account(ssn):
                 ''', (fname, lname, ssn))
 
             # Update email in ELECTRO_ADDR
-            if email:
-                cursor.execute('''
-                    UPDATE ELECTRO_ADDR 
-                    SET IDENTIFIER = ?, VERIFIED = TRUE
-                    WHERE WASSN = ? AND TYPE = 'email'
-                ''', (email, ssn))
+            # if email:
+            #     cursor.execute('''
+            #         UPDATE ELECTRO_ADDR 
+            #         SET IDENTIFIER = ?AND TYPE = 'email'
+            #     ''', (email, ssn)), VERIFIED = TRUE
+            #         WHERE WASSN = ? 
             
-            # Update phone in ELECTRO_ADDR
-            if phone:
-                cursor.execute('''
-                    UPDATE ELECTRO_ADDR 
-                    SET IDENTIFIER = ?, VERIFIED = TRUE
-                    WHERE WASSN = ? AND TYPE = 'phone'
-                ''', (phone, ssn))
+            # # Update phone in ELECTRO_ADDR
+            # if phone:
+            #     cursor.execute('''
+            #         UPDATE ELECTRO_ADDR 
+            #         SET IDENTIFIER = ?, VERIFIED = TRUE
+            #         WHERE WASSN = ? AND TYPE = 'phone'
+            #     ''', (phone, ssn))
 
             conn.commit()
             return redirect(url_for('account_info', ssn=ssn))
